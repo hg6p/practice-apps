@@ -1,34 +1,91 @@
-import { Field, FieldArray, Form, Formik } from "formik";
-import { HealthCheckEntry } from "../../types";
-import { Button, Grid } from "@material-ui/core";
-import { TextField } from "../../AddPatientModal/FormField";
+import { Field, Form, Formik } from "formik";
+import { Entry } from "../../types";
+import { Button, FormControl, Grid, RadioGroup } from "@material-ui/core";
+import {
+  DiagnosisSelection,
+  RadioField,
+  TextField,
+} from "../../AddPatientModal/FormField";
+import { useStateValue } from "../../state";
+import { useEffect, useRef } from "react";
 
 interface Props {
   onSubmit: (values: EntryFormValue) => void;
   onCancel: () => void;
 }
-export type EntryFormValue = Omit<HealthCheckEntry, "id">;
+const initialValues = {
+  date: "2018-10-05",
+  specialist: "MD House",
+  type: "",
+  diagnosisCodes: [],
+  description: "Yearly control visit. Due to high cholesterol levels",
+  healthCheckRating: 1,
+};
+export type EntryFormValue = Omit<Entry, "id">;
 
 const AddPatientEntry = ({ onSubmit, onCancel }: Props) => {
+  const [{ diagnosis }] = useStateValue();
+  console.log("diagnosis", diagnosis);
+  const radioGroupRef = useRef();
+  useEffect(() => {
+    console.log(radioGroupRef);
+  }, [radioGroupRef]);
   return (
     <Formik
-      initialValues={{
-        date: "2018-10-05",
-        specialist: "MD House",
-        type: "HealthCheck",
-        description:
-          "Yearly control visit. Due to high cholesterol levels recommended to eat more vegetables.",
-        healthCheckRating: 1,
-        diagnosisCodes: [],
-      }}
-      onSubmit={(values) => {
-        console.log(values);
-        onSubmit(values);
+      initialValues={initialValues}
+      onSubmit={onSubmit}
+      validate={(values) => {
+        const requiredError = "Field is required";
+        const errors: { [field: string]: string } = {};
+        if (!values.date) {
+          errors.date = requiredError;
+        }
+        if (!values.specialist) {
+          errors.specialist = requiredError;
+        }
+        if (!values.type) {
+          errors.type = requiredError;
+        }
+        if (!values.description) {
+          errors.description = requiredError;
+        }
+        switch (values.type) {
+          case "HealthCheckup": {
+            errors.healthCheckRating = requiredError;
+          }
+        }
+        return errors;
       }}
     >
-      {({ values }) => {
+      {({ setFieldValue, setFieldTouched, isValid, values }) => {
         return (
           <Form className="form ui">
+            <FormControl>
+              <RadioGroup
+                role="group"
+                aria-labelledby="my-radio-group"
+                innerRef={radioGroupRef}
+              >
+                <RadioField
+                  value="HealthCheck"
+                  label="Health Check"
+                  name="type"
+                  type="radio"
+                />
+                <RadioField
+                  value="OccupationalHealthcare"
+                  label="Occupational Healthcare"
+                  name="type"
+                  type="radio"
+                />
+                <RadioField
+                  value="Hospital"
+                  label="Hospital"
+                  name="type"
+                  type="radio"
+                />
+              </RadioGroup>
+            </FormControl>
             <Field
               label="description"
               placeholder="description"
@@ -50,60 +107,51 @@ const AddPatientEntry = ({ onSubmit, onCancel }: Props) => {
               component={TextField}
               style={{ display: "block" }}
             />
-            <FieldArray
-              name="diagnosisCodes"
-              render={(arrayHelpers: {
-                remove: (arg0: number) => void;
-                insert: (arg0: number, arg1: string) => void;
-                push: (arg0: string) => void;
-              }) => (
-                <div>
-                  {values.diagnosisCodes && values.diagnosisCodes.length > 0 ? (
-                    values.diagnosisCodes.map((_, index) => (
-                      <div key={index}>
-                        <Field
-                          name={`diagnosisCodes.${index}`}
-                          label="diagnosisCodes"
-                          placeholder="diagnosisCodes"
-                          component={TextField}
-                          style={{ display: "block" }}
-                        />
-                        <Button
-                          type="button"
-                          onClick={() => arrayHelpers.remove(index)} // remove a friend from the list
-                        />
-                        -
-                        <button
-                          type="button"
-                          onClick={() => arrayHelpers.insert(index, "")} // insert an empty string at a position
-                        >
-                          +
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <Button type="button" onClick={() => arrayHelpers.push("")}>
-                      {/* show this when user has removed all friends from the list */}
-                      Add Entry
-                    </Button>
-                  )}
-                </div>
-              )}
+            <DiagnosisSelection
+              setFieldValue={setFieldValue}
+              setFieldTouched={setFieldTouched}
+              diagnoses={Object.values(diagnosis)}
             />
-            <Field
-              label="type"
-              placeholder="type"
-              name="type"
+            {values.type == "HealthCheck" && (
+              <Field
+                label="health check rating"
+                placeholder="health check rating"
+                name="healthCheckRating"
+                component={TextField}
+                style={{ display: "block" }}
+              />
+            )}
+            {/*  {values.type == "OccupationalHealthcare" && (
+              <>
+                <Field
+                  label="discharge date"
+                  placeholder="discharge date"
+                  name="discharge.date"
+                  component={TextField}
+                  style={{ display: "block" }}
+                />
+                <Field
+                  label="discharge criteria "
+                  name="discharge.criteria"
+                  placeholder="discharge criteria"
+                  component={TextField}
+                  style={{ display: "block" }}
+                ></Field>
+                <Field
+                  label="employer name"
+                  name="employerName"
+                  placeholder="employer name"
+                  component={TextField}
+                  style={{ display: "block" }}
+                ></Field>
+              </>
+            )} */}
+            {/*   <Field
+              label=""
+              name=""
+              placeholder=""
               component={TextField}
-            />
-            <Field
-              label="health check rating"
-              placeholder="health check rating"
-              name="healthCheckRating"
-              component={TextField}
-              style={{ display: "block" }}
-            />
-
+            ></Field> */}
             <Grid>
               <Grid item>
                 <Button
@@ -123,11 +171,13 @@ const AddPatientEntry = ({ onSubmit, onCancel }: Props) => {
                   }}
                   type="submit"
                   variant="contained"
+                  disabled={!isValid}
                 >
                   Add
                 </Button>
               </Grid>
             </Grid>
+            <pre>{JSON.stringify(values, null, 2)}</pre>
           </Form>
         );
       }}

@@ -4,10 +4,15 @@ import { Box, Table, Button, TableHead, Typography } from "@material-ui/core";
 
 import { PatientFormValues } from "../AddPatientModal/AddPatientForm";
 import AddPatientModal from "../AddPatientModal";
-import { Patient } from "../types";
+import { Diagnosis, Patient } from "../types";
 import { apiBaseUrl } from "../constants";
 import HealthRatingBar from "../components/HealthRatingBar";
-import { addPatient, setPatientList, useStateValue } from "../state";
+import {
+  addPatient,
+  setDiagnosisList,
+  setPatientList,
+  useStateValue,
+} from "../state";
 import { TableCell } from "@material-ui/core";
 import { TableRow } from "@material-ui/core";
 import { TableBody } from "@material-ui/core";
@@ -35,7 +40,13 @@ const PatientListPage = () => {
         const { data: patientListFromApi } = await axios.get<Patient[]>(
           `${apiBaseUrl}/patients`
         );
+
+        const { data: diagnosisListFromApi } = await axios.get<Diagnosis[]>(
+          `${apiBaseUrl}/diagnoses`
+        );
         console.log("API", patientListFromApi);
+        console.log("Diagnosis", diagnosisListFromApi);
+        dispatch(setDiagnosisList(diagnosisListFromApi));
         dispatch(setPatientList(patientListFromApi));
       } catch (e) {
         console.error(e);

@@ -1,0 +1,5 @@
+mutation Register($options: UsernameAndPassword!) {
+  register(options: $options) {
+    ...RegularUserResponse
+  }
+}

@@ -34,16 +34,16 @@ const PatientView = () => {
         );
         setDiagnosis(diagnosisArray);
         console.log(id in visitedPatients, id);
-        if (id in visitedPatients) setPatientData(visitedPatients[id]);
-        else {
-          const { data: patient } = await axios.get<Patient>(
-            `http://localhost:3000/patients/${id}`
-          );
-          console.log(patient);
-          setPatientData(patient);
-          dispatch(visitPatient(patient));
-          console.log(diagnoses);
-        }
+        /*  if (id in visitedPatients) setPatientData(visitedPatients[id]);
+        else { */
+        const { data: patient } = await axios.get<Patient>(
+          `http://localhost:3000/patients/${id}`
+        );
+        console.log(patient);
+        setPatientData(patient);
+        dispatch(visitPatient(patient));
+        console.log(diagnoses);
+        //}
       } catch (e) {
         console.log(e);
       }
@@ -60,7 +60,7 @@ const PatientView = () => {
     try {
       const { data: newEntry } = await axios.post<Patient>(
         `${apiBaseUrl}/patients/${id}/entry`,
-        { ...values, healthCheckRating: Number(values.healthCheckRating) }
+        values
       );
       console.log(newEntry);
       closeModal();
