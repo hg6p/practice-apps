@@ -1,47 +1,69 @@
-import { Box, Button, Flex, Link } from '@chakra-ui/react';
+import React from 'react';
+import { Box, Link, Flex, Button, Heading } from '@chakra-ui/react';
 import NextLink from 'next/link';
-import { useLogoutMutation, useMeQuery } from '../generated/graphql';
+import { useMeQuery, useLogoutMutation } from '../generated/graphql';
 import { isServer } from '../utils/isServer';
-const Navbar = () => {
+import { useRouter } from 'next/router';
+
+const NavBar = () => {
+  const router = useRouter();
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
-  const [{ data, fetching }] = useMeQuery({ pause: isServer() });
+  const [{ data, fetching }] = useMeQuery({
+    pause: isServer(),
+  });
+  console.log(data, fetching);
   let body = null;
-  console.log('data', data);
-  if (fetching || isServer()) {
+
+  // data is loading
+  if (fetching) {
+    // user not logged in
   } else if (!data?.me) {
     body = (
       <>
-        <NextLink href="login">
-          <Link>Login</Link>
+        <NextLink href="/login">
+          <Link mr={2}>login</Link>
         </NextLink>
-        <NextLink href="register">
-          <Link>Register</Link>
+        <NextLink href="/register">
+          <Link>register</Link>
         </NextLink>
       </>
     );
+    // user is logged in
   } else {
     body = (
-      <>
-        <Box>{data.me.username}</Box>
+      <Flex align="center">
+        <NextLink href="/create-post">
+          <Button as={Link} mr={4}>
+            create post
+          </Button>
+        </NextLink>
+        <Box mr={2}>{data.me.username}</Box>
         <Button
-          variant={'link'}
+          onClick={async () => {
+            await logout();
+            router.reload();
+          }}
           isLoading={logoutFetching}
-          onClick={() => logout()}
+          variant="link"
         >
-          Logout
+          logout
         </Button>
-      </>
+      </Flex>
     );
   }
+
   return (
-    <Flex
-      backgroundColor={'crimson'}
-      p={'10px'}
-      gap={2}
-      justifyContent={'center'}
-    >
-      {body}
+    <Flex zIndex={1} position="sticky" top={0} bg="tan" p={4}>
+      <Flex flex={1} m="auto" align="center" maxW={800}>
+        <NextLink href="/">
+          <Link>
+            <Heading>LABEL</Heading>
+          </Link>
+        </NextLink>
+        <Box ml={'auto'}>{body}</Box>
+      </Flex>
     </Flex>
   );
 };
-export default Navbar;
+
+export default NavBar;
