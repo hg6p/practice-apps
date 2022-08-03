@@ -13,6 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppDataSource = void 0;
+const createUpvoteLoader_1 = require("./utils/createUpvoteLoader");
+const Upvote_1 = require("./entities/Upvote");
 require("reflect-metadata");
 const post_1 = require("./resolvers/post");
 const constants_1 = require("./constants");
@@ -27,6 +29,7 @@ const cors_1 = __importDefault(require("cors"));
 const typeorm_1 = require("typeorm");
 const Post_1 = require("./entities/Post");
 const User_1 = require("./entities/User");
+const createUserLoader_1 = require("./utils/createUserLoader");
 exports.AppDataSource = new typeorm_1.DataSource({
     type: 'postgres',
     host: 'localhost',
@@ -36,7 +39,7 @@ exports.AppDataSource = new typeorm_1.DataSource({
     database: 'mydatabase2',
     synchronize: true,
     logging: true,
-    entities: [Post_1.Post, User_1.User],
+    entities: [Post_1.Post, User_1.User, Upvote_1.Upvote],
 });
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     console.log('init mikroorm');
@@ -83,6 +86,8 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             req,
             res,
             redis,
+            userLoader: (0, createUserLoader_1.createUserLoader)(),
+            upvoteLoader: (0, createUpvoteLoader_1.createUpvoteLoader)(),
         }),
     });
     yield apolloServer.start();

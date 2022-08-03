@@ -1,3 +1,5 @@
+import { createUpvoteLoader } from './utils/createUpvoteLoader';
+import { Upvote } from './entities/Upvote';
 import 'reflect-metadata';
 import { PostResolver } from './resolvers/post';
 import { __prod__, COOKIE_NAME } from './constants';
@@ -12,6 +14,7 @@ import cors from 'cors';
 import { DataSource } from 'typeorm';
 import { Post } from './entities/Post';
 import { User } from './entities/User';
+import { createUserLoader } from './utils/createUserLoader';
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: 'localhost',
@@ -21,7 +24,7 @@ export const AppDataSource = new DataSource({
   database: 'mydatabase2',
   synchronize: true,
   logging: true,
-  entities: [Post, User],
+  entities: [Post, User, Upvote],
 });
 const main = async () => {
   /*  sendEmail('bob@bob.com', 'hello'); */
@@ -100,6 +103,8 @@ const main = async () => {
       req,
       res,
       redis,
+      userLoader: createUserLoader(),
+      upvoteLoader: createUpvoteLoader(),
     }),
   });
   await apolloServer.start();
